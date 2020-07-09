@@ -16,7 +16,7 @@ include_once "koneksi.php";
         die(json_encode($response));
       }
 
-      $sql = "SELECT * FROM `carousel`  WHERE `open` != 0 ORDER BY `id` DESC LIMIT 0,10";
+      $sql = "SELECT * FROM `carousel`  WHERE `open` != 0 ORDER BY `id` ASC LIMIT 0,10";
       $result = $conn->query($sql);
 
       if ($result->num_rows > 0) {

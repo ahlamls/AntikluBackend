@@ -25,7 +25,7 @@ include_once "koneksi.php";
 
           while($row = $result->fetch_assoc()) {
               //echo "id: " . $row["id"]. " - Name: " . $row["firstname"]. " " . $row["lastname"]. "<br>";
-              $aidi = $row->id;
+              $aidi = $row['id'];
 
           }
 
@@ -37,7 +37,8 @@ include_once "koneksi.php";
         die(json_encode($response));
       }
 
-      $sql = "SELECT * FROM `orderlist` WHERE `id` = 1 AND `user_id` = '$oid'";
+      $sql = "SELECT * FROM `orderlist` WHERE `id` = '$oid' AND `user_id` = '$aidi'";
+
       $result = $conn->query($sql);
 
       if ($result->num_rows > 0) {
@@ -47,23 +48,27 @@ include_once "koneksi.php";
           while($row = $result->fetch_assoc()) {
               //echo "id: " . $row["id"]. " - Name: " . $row["firstname"]. " " . $row["lastname"]. "<br>";
               $response = new usr();
-              $oid = $row['id'];
 
+              $oid = $row['id'];
+							$response->id = $oid;
               $response->waktu = $row['time'];
               $did = $row['driver_id'];
-              $sqlx = "SELECT * FROM `orderlist` WHERE `id` = 1 AND `user_id` = '$oid'";
+              $sqlx = "SELECT name FROM `driver` WHERE `id` = $did";
               $resultx = $conn->query($sqlx);
 
               if ($resultx->num_rows > 0) {
                   // output data of each row
                   while($rowx = $resultx->fetch_assoc()) {
-                    $response->driver = $rowx->name;
+                    $response->driver = $rowx['name'];
                   }
-              }
+              } else {
+								$response->driver = "Tidak Diketahui";
+							}
 
               $response->price = number_format($row['price']);
               $response->ongkir = number_format($row['ongkir']);
               $response->jarak = $row['jarak'];
+							$response->alamat = $row['alamat'];
 
               $response->paymentmethod = $row['paymentmethod'];
               $response->status = $row['status'];
@@ -78,11 +83,12 @@ include_once "koneksi.php";
               if ($resultx->num_rows > 0) {
 
                 $response->success = 1;
-                $response->message = "misyen sukses. duarr";
+                $response->message = "misyen sukses. duarr nmax gamemax";
 
                           $arraylist = [];
                   while($rowx = $resultx->fetch_assoc()) {
                       $myObj = new asede();
+												$myObj->id = $rowx['id'];
                         $myObj->name = $rowx['name'];
                         $myObj->info = $rowx['info'];
                         $myObj->count = $rowx['count'];
@@ -94,11 +100,11 @@ include_once "koneksi.php";
 
                   $response->success = 0;
                   $response->message = "Tidak ada Item";
-          
+
                 }
 
 
-                    $response->list = $arraylist;
+                $response->list = $arraylist;
               //$myJSON = json_encode($myObj);
 
               die(json_encode($response));
