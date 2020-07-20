@@ -7,10 +7,9 @@ include_once "koneksi.php";
   class asede{}
 
       $fuid = $conn->real_escape_string(base64_decode($_GET['id']));
-      $type = $conn->real_escape_string(base64_decode($_GET['type']));
-      $cid = $conn->real_escape_string(base64_decode($_GET['cid']));
+      $rid = $conn->real_escape_string(base64_decode($_GET['rid']));
 
-      if ($fuid == "" OR $type == "") {
+      if ($fuid == "" OR $rid == "") {
         $response = new usr();
         $response->success = 0;
         $response->message = "Data tidak lengkap";
@@ -36,37 +35,32 @@ if ($result->num_rows > 0) {
 
 
 
-$extraquery = "";
-$ctitle = "Kategori Tidak Diketahui";
-if ($type == "micro") {
-  $sqlx = "SELECT * FROM `category` WHERE `id` = $cid";
-} else if ($type == "c") {
-  $sqlx = "SELECT *  FROM `carousel` WHERE `id` = $cid";
-} else {
-  $response = new usr();
-  $response->success = 0;
-  $response->message = "Type tidak valid";
-  die(json_encode($response));
-}
+$restoname = "Resto Tidak Ditemukan";
+$restogambar = "";
+  $sqlx = "SELECT * FROM `resto` WHERE `id` = '$rid'";
+
 
 $result = $conn->query($sqlx);
 
 if ($result->num_rows > 0) {
 // output data of each row
 while($row = $result->fetch_assoc()) {
-$extraquery = $row['query'];
-$ctitle = $row['title'];
+$restoname = $row['name'];
+$restodesc = $row['deskripsi'];
+$restogambar = $row['image_url'];
+$restolat = $row['latitude'];
+$restolong = $row['longitude'];
 }
 } else {
 $response = new usr();
 $response->success = 0;
-$response->message = "Kategori tidak ditemukan";
+$response->message = "Resto tidak ditemukan";
 die(json_encode($response));
 }
 
 
 
-$sql = "SELECT * FROM `resto` $extraquery";
+$sql = "SELECT * FROM `resto_item` WHERE `resto_id` = '$rid' AND `open` = '1'";
 
       $result = $conn->query($sql);
 
@@ -75,7 +69,21 @@ $sql = "SELECT * FROM `resto` $extraquery";
 
           $response = new usr();
           $response->success = 1;
-          $response->name = $ctitle;
+          $response->id = $rid;
+          $response->name = $restoname;
+          $response->desc = $restodesc;
+          $response->gambar = $restogambar;
+          $response->latitude = $restolat;
+          $response->longitude = $restolong;
+          $jarak = distance($lat, $long, $row['latitude'], $row['longitude'], "K");
+          $restojarak  = truncate_number($jarak);
+          $response->jarak = $restojarak;
+          $restoongkir = truncate_number($jarak,0) * $ongkirprice;
+          if ($restoongkir == 0 ) {
+            $restoongkir = $ongkirprice;
+          }
+          $response->ongkir = $restoongkir;
+
 
           $arraylist = [];
 
@@ -85,15 +93,16 @@ $sql = "SELECT * FROM `resto` $extraquery";
               $myObj->id = $row['id'];
               $aidi = $myObj->id;
               $myObj->name = $row['name'];
-
-              $myObj->desc = substr($row['category'],0,20);
-              $myObj->gambar = $row['image_url'];
-              if ($lat != NULL OR $lat != "") {
-                $myObj->range = truncate_number(distance($lat, $long, $row['latitude'], $row['longitude'], "K") ). " km"; 
-
+              $myObj->desc = $row['deskripsi'];
+              $myObj->price = $row['price'];
+              if ($row['promoprice'] !== NULL) {
+                  $myObj->promoprice = $row['promoprice'];
               } else {
-                $myObj->range = "Lokasi anda tidak ada";
+                  $myObj->promoprice = 0;
               }
+              $myObj->gambar = $row['image_url'];
+
+
 
 
               //$myJSON = json_encode($myObj);

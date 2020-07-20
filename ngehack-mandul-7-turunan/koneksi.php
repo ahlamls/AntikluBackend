@@ -18,4 +18,6 @@
     return (substr($string, 0, $len) === $startString);
 }
 
+$ongkirprice = 2000;
+
 ?>
